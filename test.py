@@ -1,9 +1,10 @@
-a = 1
-b = 0
+from sys import set_int_max_str_digits
 
-for i in range(5000):
-	tmp = a
-	a = a + b
-	b = tmp
+set_int_max_str_digits(0)
 
-	print(a)
+a = 0
+b = 1
+
+for i in range(500):
+	a,b = b, a + b
+	print(b)

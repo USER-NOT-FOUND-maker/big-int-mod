@@ -15,6 +15,13 @@ typedef int int32;
 // we need to do this because we are NOT wasting compile-time on linking "stdbool.h"
 
 int32 cmpStrings(string s1, string s2){
+	if (s1[0] == '-' && s2[0] != '-') {
+		return -1;
+	}
+	else if (s1[0] != '-' && s2[0] == '-') {
+		return 1;
+	}
+
 	if (s1.size() > s2.size()) { return -1; }
 	else if (s1.size() < s2.size()) { return 1; }
 
@@ -39,13 +46,17 @@ void printIntArr(int* arr, uint32 len){
 	}
 }
 
+bool isDig(char c){
+	return (int) c > 57 || (int) c < 48;
+}
+
 bool isNum(string val){
     char* ptr = &val[0];
 
-    if ((int)*ptr > 57 || (int)*ptr < 48) { return false; }
+    if (isDig(*ptr) && *ptr != '-') { return false; }
 
     while (*ptr++ != '\0') {
-        if (((int)*ptr > 57 || (int)*ptr < 48) && *ptr != '\0') { return false; }
+        if (isDig(*ptr) && *ptr != '\0') { return false; }
     }
 
     return true;
@@ -64,14 +75,31 @@ string leftPad(string s, char c, uint32 n){
 	return constructNString(c,n) + s;
 }
 
+string removeTrailingZeros(string s){
+	if (s == "0" && s.size() == 1) {
+		return s;
+	}
+
+	uint32 index = 0; // stores where the last 0 is
+
+	while (s[index] == '0' && index != (s.size() - 1)) {
+		index++;
+	}
+
+	return s.substr(index);
+}
+
 class number{
 private:
     i8* chunks;
     uint32 amountOfChunks;
+	int32 isNeg;
 
 public:
     number(string val="0"){
         if (!(isNum(val))) { val = "0"; }
+
+		val = removeTrailingZeros(val);
 
         chunks = (i8*) malloc(val.length());
         aoc = val.size();
@@ -79,10 +107,23 @@ public:
         for (uint32 i = 0; i < aoc; i++){
             *(chunks + i) = (i8) ((i8) val[i]) - 48;
         }
+
+		if (val[0] == '-') {
+			isNeg = true;
+		}
+		else {
+			isNeg = false;
+		}
     }
 
     void setVal(string value){
+		cout << "VALUE BEFORE ISNUM " << value << endl;
+
         if (!isNum(value)) { value = "0"; }
+
+		cout << "VALUE AFTER ISNUM " << value << endl;
+
+		value = removeTrailingZeros(value);
 
         chunks = (i8*) realloc(chunks, value.length());
         aoc = value.length();
@@ -90,6 +131,13 @@ public:
         for (uint32 i = 0; i < aoc; i++){
             *(chunks + i) = (i8) ((i8) value[i]) - 48;
         }
+
+		if (value[0] == '-') {
+			isNeg = true;
+		}
+		else {
+			isNeg = false;
+		}
     }
 
     string getString() const{
@@ -98,6 +146,11 @@ public:
         for (uint32 i = 0; i < aoc; i++){
             representative += (char) (*(chunks+i) + 48);
         }
+
+		if (isNeg){
+			return '-' + representative;
+		}
+
         return representative;
     }
 
@@ -115,10 +168,6 @@ public:
 			if (*endOfChunk > 9){
 				*endOfChunk -= 10;
 				*(endOfChunk - 1) += 1;
-			}
-			else if (*endOfChunk < 0 ){
-				*endOfChunk += 10;
-				*(endOfChunk - 1) -= 1;
 			}
 			endOfChunk--;
 		}
@@ -352,6 +401,20 @@ we have to add the appropriate 0s and THEN multiply by, so something like
 
 };
 
+void fibonacci(){
+	number a;
+	number b("1");
+	number tmp;
+
+	for (uint32 i = 0; i < 10000; i++){
+		tmp = b;
+		b = b + a;
+		a = tmp;
+
+		cout << b << "\n";
+	}
+}
+
 int main(){
 	number a;
 	number b;
@@ -368,7 +431,7 @@ int main(){
 
 	number c = a - b;
 
-	cout << endl << c << endl;
+//	cout << endl << c << endl;
 
     return 0;
 }
